@@ -1,0 +1,100 @@
+<html>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+    <script>
+
+    let socket =new WebSocket('ws://localhost:8000/ws/polData/');
+    socket.onopen =function(e){
+        // alert('Connection established');
+    };
+
+    socket.onmessage = function(e){ 
+        var recData=JSON.parse(e.data);
+        document.getElementById('visitors').innerHTML = recData.x
+
+        dataObjNew=dataObj['data']['datasets'][0]['data'];
+        dataObjNew.shift();
+        dataObjNew.push(recData.value);
+        dataObj['data']['datasets'][0]['data']=dataObjNew;
+
+
+        datalabel=dataObj['data']['labels']
+        datalabel.shift();
+        datalabel.push(recData.value);
+        dataObj['data']['labels']=datalabel;
+
+
+        window.myLine.update();
+
+    };
+
+    socket.onclose = function(e){
+        // alert('Connection CLosed');
+    };
+    
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<body>
+    <button id="call" style="display: none;">click</button>
+    <h1 id="visitors">0</h1>
+    <div style="max-height: 400px;">
+        <canvas id="myChart" width="900" height="250"></canvas>
+    </div>
+<script>
+    
+setTimeout(() => {
+    if (document.getElementById('visitors').innerHTML==0){
+            $.ajax({
+                url:'fetch/',
+                success:function(e){
+                    console.log(1);
+                    
+                }
+            })
+        }
+}, 2000);
+
+// deactivate
+window.onunload = function () {
+    if(document.getElementById('visitors').innerHTML<3){
+    let body = {};
+    let headers = { type: 'application/json'};
+    let blob = new Blob([JSON.stringify(body)], headers);
+    navigator.sendBeacon('deactivate/', blob);
+    }
+}
+
+// var data = { ajax_data: 22 };
+// var blob = new Blob([JSON.stringify(data)], {type : 'application/json'}); 
+// navigator.sendBeacon('deactivate/', blob);
+
+</script>
+</body>
+
+    
+    <script>
+    var dataObj={
+        type: 'line',
+        data: {
+            labels:   [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,],
+            datasets: [{
+                label: 'Real time data',
+                data: [12, 19, 3, 5, 2, 3,21,43,11,76, 3, 5, 2, 3, 2, 3,21,43,11,76,],
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    }
+    var ctx = document.getElementById('myChart').getContext('2d');
+    window.myLine = new Chart(ctx,dataObj );
+    </script>
+   
+</html>
